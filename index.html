@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天气预报</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #87CEEB;
+            padding: 20px 10px;
+            font-family: sans-serif;
+        }
+        .wrap {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #locBtn {
+            width: 100%;
+            padding: 10px;
+            background: #20c997;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom:15px;
+        }
+        .search-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        #city {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        #search {
+            padding: 0 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .tip {
+            color: red;
+            text-align: center;
+            height: 22px;
+        }
+        .now-box {
+            text-align: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom:16px;
+        }
+        .temp-num {
+            font-size: 4rem;
+            margin:8px 0;
+        }
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap:10px;
+        }
+        .day-card {
+            background: #e9f5ff;
+            padding:12px;
+            text-align:center;
+            border-radius:10px;
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>天气预报查询</h1>
+    <button id="locBtn">获取当前位置</button>
+    <div class="search-row">
+        <input id="city" placeholder="输入城市名称">
+        <button id="search">搜索</button>
+    </div>
+    <div class="tip" id="msg"></div>
+    <div class="now-box" id="nowView"></div>
+    <div class="forecast-grid" id="foreView"></div>
+</div>
+
+<script>
+    // ES6箭头函数、解构
+    const msg = document.getElementById('msg');
+    const cityInput = document.getElementById('city');
+    const searchBtn = document.getElementById('search');
+    const locBtn = document.getElementById('locBtn');
+    const nowView = document.getElementById('nowView');
+    const foreView = document.getElementById('foreView');
+
+    // 模拟天气数据
+    const mockWeather = {
+        "北京": {now:{temp:26,text:"晴"},daily:[
+            {fxDate:"2026-07-08",textDay:"晴",tempMax:29,tempMin:22},
+            {fxDate:"2026-07-09",textDay:"多云",tempMax:28,tempMin:21},
+            {fxDate:"2026-07-10",textDay:"小雨",tempMax:26,tempMin:20}
+        ]},
+        "广州": {now:{temp:32,text:"多云"},daily:[
+            {fxDate:"2026-07-08",textDay:"多云",tempMax:34,tempMin:27},
+            {fxDate:"2026-07-09",textDay:"雷阵雨",tempMax:32,tempMin:26},
+            {fxDate:"2026-07-10",textDay:"晴",tempMax:33,tempMin:27}
+        ]},
+        "佛山": {now:{temp:31,text:"多云"},daily:[
+            {fxDate:"2026-07-08",textDay:"多云",tempMax:33,tempMin:26},
+            {fxDate:"2026-07-09",textDay:"阵雨",tempMax:31,tempMin:25},
+            {fxDate:"2026-07-10",textDay:"多云",tempMax:32,tempMin:26}
+        ]}
+    };
+
+    // 页面加载读取本地存储（加分项：数据持久化）
+    window.onload = () => {
+        const lastCity = localStorage.getItem('lastCity');
+        if(lastCity) {
+            cityInput.value = lastCity;
+            renderData(lastCity);
+        }
+    }
+
+    // 绑定事件
+    searchBtn.addEventListener('click', ()=>handleSearch());
+    cityInput.addEventListener('keydown', e=>{
+        if(e.key === 'Enter') handleSearch();
+    });
+    locBtn.addEventListener('click', ()=>{
+        // 模拟浏览器定位
+        const city = "佛山";
+        cityInput.value = city;
+        renderData(city);
+    })
+
+    // 搜索校验：非空判断（功能1）
+    function handleSearch() {
+        msg.textContent = "";
+        const city = cityInput.value.trim();
+        if(!city) {
+            msg.textContent = "请输入城市名称！";
+            return;
+        }
+        if(!mockWeather[city]) {
+            msg.textContent = "暂无该城市数据（支持北京、广州、佛山）";
+            return;
+        }
+        renderData(city);
+    }
+
+    // 渲染页面
+    function renderData(cityName) {
+        localStorage.setItem('lastCity', cityName);
+        const {now, daily} = mockWeather[cityName]; // 解构赋值 ES6
+
+        // 实时天气（功能2）
+        nowView.innerHTML = `
+            <h2>${cityName}</h2>
+            <div class="temp-num">${now.temp} ℃</div>
+            <p>天气：${now.text}</p>
+        `;
+        // 未来3天预报（功能3）
+        foreView.innerHTML = daily.map(item=>`
+            <div class="day-card">
+                <h4>${item.fxDate}</h4>
+                <p>${item.textDay}</p>
+                <p>最高${item.tempMax}℃</p>
+                <p>最低${item.tempMin}℃</p>
+            </div>
+        `).join('');
+    }
+</script>
+</body>
+</html>
